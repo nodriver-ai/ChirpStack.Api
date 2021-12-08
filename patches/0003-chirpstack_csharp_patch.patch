@@ -1,0 +1,25 @@
+From c8bcbcc78a3510dc04a9b04ff77d8e974c22294d Mon Sep 17 00:00:00 2001
+From: Luca Calacci <chipscal@gmail.com>
+Date: Wed, 8 Dec 2021 12:27:44 +0100
+Subject: [PATCH 3/3] chirpstack_csharp_patch
+
+---
+ ChirpStack.Generate.csproj | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ChirpStack.Generate.csproj b/ChirpStack.Generate.csproj
+index c8a906a..bbb564c 100644
+--- a/ChirpStack.Generate.csproj
++++ b/ChirpStack.Generate.csproj
+@@ -16,7 +16,7 @@
+ 
+   <ItemGroup>
+     <PackageReference Include="Google.Api.CommonProtos" Version="2.0.0" />
+-
++    <Protobuf Include="protobuf/google/**/*.proto" ProtoRoot="protobuf" OutputDir="../ChirpStack.Api/Protos/google/%(RelativePath)" GrpcServices="None" CompileOutputs="false" />
+     <Protobuf Include="protobuf/as/**/*.proto" ProtoRoot="protobuf" OutputDir="../ChirpStack.Api/Protos/as/%(RelativePath)" GrpcServices="Client" CompileOutputs="false" />
+     <Protobuf Update="protobuf/as/**/frameLog.proto;protobuf/as/**/profiles.proto;protobuf/as/**/integration.proto" GrpcServices="None" />
+     <Protobuf Include="protobuf/common/**/*.proto" ProtoRoot="protobuf" OutputDir="../ChirpStack.Api/Protos/common/%(RelativePath)" GrpcServices="None" CompileOutputs="false" />
+-- 
+2.34.0.windows.1
+

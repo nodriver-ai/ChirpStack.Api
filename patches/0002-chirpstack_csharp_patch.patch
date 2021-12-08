@@ -1,0 +1,39 @@
+From 6625eaadc6c39e9461ff385d4d4754448fbc71d7 Mon Sep 17 00:00:00 2001
+From: Luca Calacci <chipscal@gmail.com>
+Date: Wed, 8 Dec 2021 12:21:18 +0100
+Subject: [PATCH 2/3] chirpstack_csharp_patch
+
+---
+ protobuf/as/as.proto                      | 2 +-
+ protobuf/as/integration/integration.proto | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/protobuf/as/as.proto b/protobuf/as/as.proto
+index ab319a0..52f4750 100644
+--- a/protobuf/as/as.proto
++++ b/protobuf/as/as.proto
+@@ -6,7 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as";
+ option java_package = "io.chirpstack.api.as";
+ option java_multiple_files = true;
+ option java_outer_classname = "ApplicationServerProto";
+-option csharp_namespace = "ChirpStack.Api.As";
++option csharp_namespace = "ChirpStack.Api";
+ 
+ import "google/protobuf/empty.proto";
+ import "google/protobuf/timestamp.proto";
+diff --git a/protobuf/as/integration/integration.proto b/protobuf/as/integration/integration.proto
+index bf6f346..c73ce70 100644
+--- a/protobuf/as/integration/integration.proto
++++ b/protobuf/as/integration/integration.proto
+@@ -6,7 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/integration";
+ option java_package = "io.chirpstack.api.as.integration";
+ option java_multiple_files = true;
+ option java_outer_classname = "IntegrationProto";
+-option csharp_namespace = "ChirpStack.Api";
++option csharp_namespace = "ChirpStack.Api.As.Integration";
+ 
+ import "common/common.proto";
+ import "gw/gw.proto";
+-- 
+2.34.0.windows.1
+

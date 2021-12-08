@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChirpStack.Api", "ChirpStack.Api\ChirpStack.Api.csproj", "{461F14F3-FFDE-4E55-9713-CB652A336011}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChirpStack.Api.Test", "ChirpStack.Api.Test\ChirpStack.Api.Test.csproj", "{2331F725-84CD-4005-BDEE-F23CD5F00B1B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{461F14F3-FFDE-4E55-9713-CB652A336011}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{461F14F3-FFDE-4E55-9713-CB652A336011}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{461F14F3-FFDE-4E55-9713-CB652A336011}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{461F14F3-FFDE-4E55-9713-CB652A336011}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2331F725-84CD-4005-BDEE-F23CD5F00B1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2331F725-84CD-4005-BDEE-F23CD5F00B1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2331F725-84CD-4005-BDEE-F23CD5F00B1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2331F725-84CD-4005-BDEE-F23CD5F00B1B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

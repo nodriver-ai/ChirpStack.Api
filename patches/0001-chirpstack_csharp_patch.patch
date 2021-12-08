@@ -1,0 +1,789 @@
+From b2b389308d0b931d37240bd2820b54ec8f1bbaf9 Mon Sep 17 00:00:00 2001
+From: Luca Calacci <chipscal@gmail.com>
+Date: Wed, 8 Dec 2021 11:53:49 +0100
+Subject: [PATCH 1/3] chirpstack_csharp_patch
+
+---
+ .gitignore                                    |   4 +
+ ChirpStack.Generate.csproj                    |  28 ++
+ protobuf/as/as.proto                          |   1 +
+ protobuf/as/external/api/application.proto    |   1 +
+ protobuf/as/external/api/device.proto         |   2 +
+ protobuf/as/external/api/deviceProfile.proto  |   1 +
+ protobuf/as/external/api/deviceQueue.proto    |   1 +
+ protobuf/as/external/api/frameLog.proto       |   1 +
+ protobuf/as/external/api/gateway.proto        |   1 +
+ protobuf/as/external/api/gatewayProfile.proto |   1 +
+ protobuf/as/external/api/internal.proto       |   1 +
+ protobuf/as/external/api/multicastGroup.proto |   1 +
+ protobuf/as/external/api/networkServer.proto  |   1 +
+ protobuf/as/external/api/organization.proto   |   1 +
+ protobuf/as/external/api/profiles.proto       |   1 +
+ protobuf/as/external/api/serviceProfile.proto |   1 +
+ protobuf/as/external/api/user.proto           |   1 +
+ protobuf/as/integration/integration.proto     |   1 +
+ protobuf/common/common.proto                  |   1 +
+ protobuf/fuota/fuota.proto                    |   1 +
+ protobuf/geo/geo.proto                        |   1 +
+ protobuf/google/api/annotations.proto         |  33 ++
+ protobuf/google/api/http.proto                | 377 ++++++++++++++++++
+ protobuf/gw/gw.proto                          |   1 +
+ protobuf/nc/nc.proto                          |   1 +
+ protobuf/ns/ns.proto                          |   1 +
+ protobuf/ns/profiles.proto                    |   1 +
+ 27 files changed, 466 insertions(+)
+ create mode 100644 ChirpStack.Generate.csproj
+ create mode 100644 protobuf/google/api/annotations.proto
+ create mode 100644 protobuf/google/api/http.proto
+
+diff --git a/.gitignore b/.gitignore
+index 5d9bd6e..8683d37 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -13,3 +13,7 @@
+ 
+ # java
+ /java/build/
++
++# CSharp
++/bin
++/obj
+diff --git a/ChirpStack.Generate.csproj b/ChirpStack.Generate.csproj
+new file mode 100644
+index 0000000..c8a906a
+--- /dev/null
++++ b/ChirpStack.Generate.csproj
+@@ -0,0 +1,28 @@
++<Project Sdk="Microsoft.NET.Sdk">
++
++  <PropertyGroup>
++    <TargetFramework>netstandard2.0</TargetFramework>
++  </PropertyGroup>
++
++  <ItemGroup>
++    <PackageReference Include="Google.Protobuf" Version="3.18.0" />
++    <PackageReference Include="Grpc" Version="2.40.0" />
++    <PackageReference Include="Grpc.Net.Client" Version="2.39.0" />
++    <PackageReference Include="Grpc.Tools" Version="2.40.0">
++      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
++      <PrivateAssets>all</PrivateAssets>
++    </PackageReference>
++  </ItemGroup>
++
++  <ItemGroup>
++    <PackageReference Include="Google.Api.CommonProtos" Version="2.0.0" />
++
++    <Protobuf Include="protobuf/as/**/*.proto" ProtoRoot="protobuf" OutputDir="../ChirpStack.Api/Protos/as/%(RelativePath)" GrpcServices="Client" CompileOutputs="false" />
++    <Protobuf Update="protobuf/as/**/frameLog.proto;protobuf/as/**/profiles.proto;protobuf/as/**/integration.proto" GrpcServices="None" />
++    <Protobuf Include="protobuf/common/**/*.proto" ProtoRoot="protobuf" OutputDir="../ChirpStack.Api/Protos/common/%(RelativePath)" GrpcServices="None" CompileOutputs="false" />
++    <Protobuf Include="protobuf/geo/**/*.proto" ProtoRoot="protobuf" OutputDir="../ChirpStack.Api/Protos/geo/%(RelativePath)" GrpcServices="None" CompileOutputs="false" />
++    <Protobuf Include="protobuf/gw/**/*.proto" ProtoRoot="protobuf" OutputDir="../ChirpStack.Api/Protos/gw/%(RelativePath)" GrpcServices="None" CompileOutputs="false" />
++    <Protobuf Include="protobuf/nc/**/*.proto" ProtoRoot="protobuf" OutputDir="../ChirpStack.Api/Protos/nc/%(RelativePath)" GrpcServices="None" CompileOutputs="false" />
++    <Protobuf Include="protobuf/ns/**/*.proto" ProtoRoot="protobuf" OutputDir="../ChirpStack.Api/Protos/ns/%(RelativePath)" GrpcServices="None" CompileOutputs="false" />
++  </ItemGroup>
++</Project>
+\ No newline at end of file
+diff --git a/protobuf/as/as.proto b/protobuf/as/as.proto
+index 2537910..ab319a0 100644
+--- a/protobuf/as/as.proto
++++ b/protobuf/as/as.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as";
+ option java_package = "io.chirpstack.api.as";
+ option java_multiple_files = true;
+ option java_outer_classname = "ApplicationServerProto";
++option csharp_namespace = "ChirpStack.Api.As";
+ 
+ import "google/protobuf/empty.proto";
+ import "google/protobuf/timestamp.proto";
+diff --git a/protobuf/as/external/api/application.proto b/protobuf/as/external/api/application.proto
+index 2d69a9b..05484a6 100644
+--- a/protobuf/as/external/api/application.proto
++++ b/protobuf/as/external/api/application.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/external/api";
+ option java_package = "io.chirpstack.api.as.external.api";
+ option java_multiple_files = true;
+ option java_outer_classname = "ApplicationProto";
++option csharp_namespace = "ChirpStack.Api.As.External.Api";
+ 
+ import "google/protobuf/timestamp.proto";
+ import "google/api/annotations.proto";
+diff --git a/protobuf/as/external/api/device.proto b/protobuf/as/external/api/device.proto
+index f71d596..2a56040 100644
+--- a/protobuf/as/external/api/device.proto
++++ b/protobuf/as/external/api/device.proto
+@@ -6,6 +6,8 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/external/api";
+ option java_package = "io.chirpstack.api.as.external.api";
+ option java_multiple_files = true;
+ option java_outer_classname = "DeviceProto";
++option csharp_namespace = "ChirpStack.Api.As.External.Api";
++
+ 
+ import "google/api/annotations.proto";
+ import "google/protobuf/timestamp.proto";
+diff --git a/protobuf/as/external/api/deviceProfile.proto b/protobuf/as/external/api/deviceProfile.proto
+index cd81e67..9c59a36 100644
+--- a/protobuf/as/external/api/deviceProfile.proto
++++ b/protobuf/as/external/api/deviceProfile.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/external/api";
+ option java_package = "io.chirpstack.api.as.external.api";
+ option java_multiple_files = true;
+ option java_outer_classname = "DeviceProfileProto";
++option csharp_namespace = "ChirpStack.Api.As.External.Api";
+ 
+ import "google/api/annotations.proto";
+ import "google/protobuf/timestamp.proto";
+diff --git a/protobuf/as/external/api/deviceQueue.proto b/protobuf/as/external/api/deviceQueue.proto
+index 0585148..22eecbe 100644
+--- a/protobuf/as/external/api/deviceQueue.proto
++++ b/protobuf/as/external/api/deviceQueue.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/external/api";
+ option java_package = "io.chirpstack.api.as.external.api";
+ option java_multiple_files = true;
+ option java_outer_classname = "DeviceQueueProto";
++option csharp_namespace = "ChirpStack.Api.As.External.Api";
+ 
+ import "google/api/annotations.proto";
+ import "google/protobuf/empty.proto";
+diff --git a/protobuf/as/external/api/frameLog.proto b/protobuf/as/external/api/frameLog.proto
+index b151916..cffeda2 100644
+--- a/protobuf/as/external/api/frameLog.proto
++++ b/protobuf/as/external/api/frameLog.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/external/api";
+ option java_package = "io.chirpstack.api.as.external.api";
+ option java_multiple_files = true;
+ option java_outer_classname = "FrameLogProto";
++option csharp_namespace = "ChirpStack.Api.As.External.Api";
+ 
+ import "google/protobuf/timestamp.proto";
+ import "google/protobuf/duration.proto";
+diff --git a/protobuf/as/external/api/gateway.proto b/protobuf/as/external/api/gateway.proto
+index 297cb00..20e1040 100644
+--- a/protobuf/as/external/api/gateway.proto
++++ b/protobuf/as/external/api/gateway.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/external/api";
+ option java_package = "io.chirpstack.api.as.external.api";
+ option java_multiple_files = true;
+ option java_outer_classname = "GatewayProto";
++option csharp_namespace = "ChirpStack.Api.As.External.Api";
+ 
+ import "google/api/annotations.proto";
+ import "google/protobuf/timestamp.proto";
+diff --git a/protobuf/as/external/api/gatewayProfile.proto b/protobuf/as/external/api/gatewayProfile.proto
+index 2281b4f..baba0d0 100644
+--- a/protobuf/as/external/api/gatewayProfile.proto
++++ b/protobuf/as/external/api/gatewayProfile.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/external/api";
+ option java_package = "io.chirpstack.api.as.external.api";
+ option java_multiple_files = true;
+ option java_outer_classname = "GatewayProfileProto";
++option csharp_namespace = "ChirpStack.Api.As.External.Api";
+ 
+ import "google/api/annotations.proto";
+ import "google/protobuf/timestamp.proto";
+diff --git a/protobuf/as/external/api/internal.proto b/protobuf/as/external/api/internal.proto
+index a5dd68a..9782c3a 100644
+--- a/protobuf/as/external/api/internal.proto
++++ b/protobuf/as/external/api/internal.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/external/api";
+ option java_package = "io.chirpstack.api.as.external.api";
+ option java_multiple_files = true;
+ option java_outer_classname = "InternalProto";
++option csharp_namespace = "ChirpStack.Api.As.External.Api";
+ 
+ import "google/api/annotations.proto";
+ import "google/protobuf/timestamp.proto";
+diff --git a/protobuf/as/external/api/multicastGroup.proto b/protobuf/as/external/api/multicastGroup.proto
+index 6b88b2d..0eed278 100644
+--- a/protobuf/as/external/api/multicastGroup.proto
++++ b/protobuf/as/external/api/multicastGroup.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/external/api";
+ option java_package = "io.chirpstack.api.as.external.api";
+ option java_multiple_files = true;
+ option java_outer_classname = "MulticastGroupProto";
++option csharp_namespace = "ChirpStack.Api.As.External.Api";
+ 
+ import "google/api/annotations.proto";
+ import "google/protobuf/timestamp.proto";
+diff --git a/protobuf/as/external/api/networkServer.proto b/protobuf/as/external/api/networkServer.proto
+index 26e1035..6ea86f8 100644
+--- a/protobuf/as/external/api/networkServer.proto
++++ b/protobuf/as/external/api/networkServer.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/external/api";
+ option java_package = "io.chirpstack.api.as.external.api";
+ option java_multiple_files = true;
+ option java_outer_classname = "NetworkServerProto";
++option csharp_namespace = "ChirpStack.Api.As.External.Api";
+ 
+ import "google/api/annotations.proto";
+ import "google/protobuf/timestamp.proto";
+diff --git a/protobuf/as/external/api/organization.proto b/protobuf/as/external/api/organization.proto
+index 7c84bd4..df18c91 100644
+--- a/protobuf/as/external/api/organization.proto
++++ b/protobuf/as/external/api/organization.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/external/api";
+ option java_package = "io.chirpstack.api.as.external.api";
+ option java_multiple_files = true;
+ option java_outer_classname = "OrganizationProto";
++option csharp_namespace = "ChirpStack.Api.As.External.Api";
+ 
+ import "google/api/annotations.proto";
+ import "google/protobuf/timestamp.proto";
+diff --git a/protobuf/as/external/api/profiles.proto b/protobuf/as/external/api/profiles.proto
+index 31f3ba1..bcfe5e1 100644
+--- a/protobuf/as/external/api/profiles.proto
++++ b/protobuf/as/external/api/profiles.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/external/api";
+ option java_package = "io.chirpstack.api.as.external.api";
+ option java_multiple_files = true;
+ option java_outer_classname = "ProfilesProto";
++option csharp_namespace = "ChirpStack.Api.As.External.Api";
+ 
+ import "google/protobuf/duration.proto";
+ 
+diff --git a/protobuf/as/external/api/serviceProfile.proto b/protobuf/as/external/api/serviceProfile.proto
+index f8a4aee..aaa7d32 100644
+--- a/protobuf/as/external/api/serviceProfile.proto
++++ b/protobuf/as/external/api/serviceProfile.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/external/api";
+ option java_package = "io.chirpstack.api.as.external.api";
+ option java_multiple_files = true;
+ option java_outer_classname = "ServiceProfileProto";
++option csharp_namespace = "ChirpStack.Api.As.External.Api";
+ 
+ import "google/api/annotations.proto";
+ import "google/protobuf/timestamp.proto";
+diff --git a/protobuf/as/external/api/user.proto b/protobuf/as/external/api/user.proto
+index 042e931..190b679 100644
+--- a/protobuf/as/external/api/user.proto
++++ b/protobuf/as/external/api/user.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/external/api";
+ option java_package = "io.chirpstack.api.as.external.api";
+ option java_multiple_files = true;
+ option java_outer_classname = "UserProto";
++option csharp_namespace = "ChirpStack.Api.As.External.Api";
+ 
+ import "google/api/annotations.proto";
+ import "google/protobuf/timestamp.proto";
+diff --git a/protobuf/as/integration/integration.proto b/protobuf/as/integration/integration.proto
+index eb101c0..bf6f346 100644
+--- a/protobuf/as/integration/integration.proto
++++ b/protobuf/as/integration/integration.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/integration";
+ option java_package = "io.chirpstack.api.as.integration";
+ option java_multiple_files = true;
+ option java_outer_classname = "IntegrationProto";
++option csharp_namespace = "ChirpStack.Api";
+ 
+ import "common/common.proto";
+ import "gw/gw.proto";
+diff --git a/protobuf/common/common.proto b/protobuf/common/common.proto
+index 2886312..9f87758 100644
+--- a/protobuf/common/common.proto
++++ b/protobuf/common/common.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/common";
+ option java_package = "io.chirpstack.api.common";
+ option java_multiple_files = true;
+ option java_outer_classname = "CommonProto";
++option csharp_namespace = "ChirpStack.Api.Common";
+ 
+ enum Modulation {
+     // LoRa
+diff --git a/protobuf/fuota/fuota.proto b/protobuf/fuota/fuota.proto
+index b5900b6..6c64bdc 100644
+--- a/protobuf/fuota/fuota.proto
++++ b/protobuf/fuota/fuota.proto
+@@ -4,6 +4,7 @@ package fuota;
+ 
+ option go_package = "github.com/brocaar/chirpstack-api/go/v3/fuota";
+ option java_package = "io.chirpstack.api.fuota";
++option csharp_namespace = "ChirpStack.Api.Fuota";
+ 
+ import "google/protobuf/timestamp.proto";
+ import "google/protobuf/duration.proto";
+diff --git a/protobuf/geo/geo.proto b/protobuf/geo/geo.proto
+index ba04fb5..6328e50 100644
+--- a/protobuf/geo/geo.proto
++++ b/protobuf/geo/geo.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/geo";
+ option java_package = "io.chirpstack.api.geo";
+ option java_multiple_files = true;
+ option java_outer_classname = "GeolocationServerProto";
++option csharp_namespace = "ChirpStack.Api.Geo";
+ 
+ import "gw/gw.proto";
+ import "common/common.proto";
+diff --git a/protobuf/google/api/annotations.proto b/protobuf/google/api/annotations.proto
+new file mode 100644
+index 0000000..1209c94
+--- /dev/null
++++ b/protobuf/google/api/annotations.proto
+@@ -0,0 +1,33 @@
++// Copyright 2015 Google LLC
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//     http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++syntax = "proto3";
++
++package google.api;
++
++import "google/api/http.proto";
++import "google/protobuf/descriptor.proto";
++
++option go_package = "google.golang.org/genproto/googleapis/api/annotations;annotations";
++option java_multiple_files = true;
++option java_outer_classname = "AnnotationsProto";
++option java_package = "com.google.api";
++option objc_class_prefix = "GAPI";
++option csharp_namespace = "Google.Api";
++
++
++extend google.protobuf.MethodOptions {
++  // See `HttpRule`.
++  HttpRule http = 72295728;
++}
+\ No newline at end of file
+diff --git a/protobuf/google/api/http.proto b/protobuf/google/api/http.proto
+new file mode 100644
+index 0000000..7854bd8
+--- /dev/null
++++ b/protobuf/google/api/http.proto
+@@ -0,0 +1,377 @@
++// Copyright 2015 Google LLC
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//     http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++syntax = "proto3";
++
++package google.api;
++
++option cc_enable_arenas = true;
++option go_package = "google.golang.org/genproto/googleapis/api/annotations;annotations";
++option java_multiple_files = true;
++option java_outer_classname = "HttpProto";
++option java_package = "com.google.api";
++option objc_class_prefix = "GAPI";
++option csharp_namespace = "Google.Api";
++
++
++// Defines the HTTP configuration for an API service. It contains a list of
++// [HttpRule][google.api.HttpRule], each specifying the mapping of an RPC method
++// to one or more HTTP REST API methods.
++message Http {
++  // A list of HTTP configuration rules that apply to individual API methods.
++  //
++  // **NOTE:** All service configuration rules follow "last one wins" order.
++  repeated HttpRule rules = 1;
++
++  // When set to true, URL path parameters will be fully URI-decoded except in
++  // cases of single segment matches in reserved expansion, where "%2F" will be
++  // left encoded.
++  //
++  // The default behavior is to not decode RFC 6570 reserved characters in multi
++  // segment matches.
++  bool fully_decode_reserved_expansion = 2;
++}
++
++// # gRPC Transcoding
++//
++// gRPC Transcoding is a feature for mapping between a gRPC method and one or
++// more HTTP REST endpoints. It allows developers to build a single API service
++// that supports both gRPC APIs and REST APIs. Many systems, including [Google
++// APIs](https://github.com/googleapis/googleapis),
++// [Cloud Endpoints](https://cloud.google.com/endpoints), [gRPC
++// Gateway](https://github.com/grpc-ecosystem/grpc-gateway),
++// and [Envoy](https://github.com/envoyproxy/envoy) proxy support this feature
++// and use it for large scale production services.
++//
++// `HttpRule` defines the schema of the gRPC/REST mapping. The mapping specifies
++// how different portions of the gRPC request message are mapped to the URL
++// path, URL query parameters, and HTTP request body. It also controls how the
++// gRPC response message is mapped to the HTTP response body. `HttpRule` is
++// typically specified as an `google.api.http` annotation on the gRPC method.
++//
++// Each mapping specifies a URL path template and an HTTP method. The path
++// template may refer to one or more fields in the gRPC request message, as long
++// as each field is a non-repeated field with a primitive (non-message) type.
++// The path template controls how fields of the request message are mapped to
++// the URL path.
++//
++// Example:
++//
++//     service Messaging {
++//       rpc GetMessage(GetMessageRequest) returns (Message) {
++//         option (google.api.http) = {
++//             get: "/v1/{name=messages/*}"
++//         };
++//       }
++//     }
++//     message GetMessageRequest {
++//       string name = 1; // Mapped to URL path.
++//     }
++//     message Message {
++//       string text = 1; // The resource content.
++//     }
++//
++// This enables an HTTP REST to gRPC mapping as below:
++//
++// HTTP | gRPC
++// -----|-----
++// `GET /v1/messages/123456`  | `GetMessage(name: "messages/123456")`
++//
++// Any fields in the request message which are not bound by the path template
++// automatically become HTTP query parameters if there is no HTTP request body.
++// For example:
++//
++//     service Messaging {
++//       rpc GetMessage(GetMessageRequest) returns (Message) {
++//         option (google.api.http) = {
++//             get:"/v1/messages/{message_id}"
++//         };
++//       }
++//     }
++//     message GetMessageRequest {
++//       message SubMessage {
++//         string subfield = 1;
++//       }
++//       string message_id = 1; // Mapped to URL path.
++//       int64 revision = 2;    // Mapped to URL query parameter `revision`.
++//       SubMessage sub = 3;    // Mapped to URL query parameter `sub.subfield`.
++//     }
++//
++// This enables a HTTP JSON to RPC mapping as below:
++//
++// HTTP | gRPC
++// -----|-----
++// `GET /v1/messages/123456?revision=2&sub.subfield=foo` |
++// `GetMessage(message_id: "123456" revision: 2 sub: SubMessage(subfield:
++// "foo"))`
++//
++// Note that fields which are mapped to URL query parameters must have a
++// primitive type or a repeated primitive type or a non-repeated message type.
++// In the case of a repeated type, the parameter can be repeated in the URL
++// as `...?param=A&param=B`. In the case of a message type, each field of the
++// message is mapped to a separate parameter, such as
++// `...?foo.a=A&foo.b=B&foo.c=C`.
++//
++// For HTTP methods that allow a request body, the `body` field
++// specifies the mapping. Consider a REST update method on the
++// message resource collection:
++//
++//     service Messaging {
++//       rpc UpdateMessage(UpdateMessageRequest) returns (Message) {
++//         option (google.api.http) = {
++//           patch: "/v1/messages/{message_id}"
++//           body: "message"
++//         };
++//       }
++//     }
++//     message UpdateMessageRequest {
++//       string message_id = 1; // mapped to the URL
++//       Message message = 2;   // mapped to the body
++//     }
++//
++// The following HTTP JSON to RPC mapping is enabled, where the
++// representation of the JSON in the request body is determined by
++// protos JSON encoding:
++//
++// HTTP | gRPC
++// -----|-----
++// `PATCH /v1/messages/123456 { "text": "Hi!" }` | `UpdateMessage(message_id:
++// "123456" message { text: "Hi!" })`
++//
++// The special name `*` can be used in the body mapping to define that
++// every field not bound by the path template should be mapped to the
++// request body.  This enables the following alternative definition of
++// the update method:
++//
++//     service Messaging {
++//       rpc UpdateMessage(Message) returns (Message) {
++//         option (google.api.http) = {
++//           patch: "/v1/messages/{message_id}"
++//           body: "*"
++//         };
++//       }
++//     }
++//     message Message {
++//       string message_id = 1;
++//       string text = 2;
++//     }
++//
++//
++// The following HTTP JSON to RPC mapping is enabled:
++//
++// HTTP | gRPC
++// -----|-----
++// `PATCH /v1/messages/123456 { "text": "Hi!" }` | `UpdateMessage(message_id:
++// "123456" text: "Hi!")`
++//
++// Note that when using `*` in the body mapping, it is not possible to
++// have HTTP parameters, as all fields not bound by the path end in
++// the body. This makes this option more rarely used in practice when
++// defining REST APIs. The common usage of `*` is in custom methods
++// which don't use the URL at all for transferring data.
++//
++// It is possible to define multiple HTTP methods for one RPC by using
++// the `additional_bindings` option. Example:
++//
++//     service Messaging {
++//       rpc GetMessage(GetMessageRequest) returns (Message) {
++//         option (google.api.http) = {
++//           get: "/v1/messages/{message_id}"
++//           additional_bindings {
++//             get: "/v1/users/{user_id}/messages/{message_id}"
++//           }
++//         };
++//       }
++//     }
++//     message GetMessageRequest {
++//       string message_id = 1;
++//       string user_id = 2;
++//     }
++//
++// This enables the following two alternative HTTP JSON to RPC mappings:
++//
++// HTTP | gRPC
++// -----|-----
++// `GET /v1/messages/123456` | `GetMessage(message_id: "123456")`
++// `GET /v1/users/me/messages/123456` | `GetMessage(user_id: "me" message_id:
++// "123456")`
++//
++// ## Rules for HTTP mapping
++//
++// 1. Leaf request fields (recursive expansion nested messages in the request
++//    message) are classified into three categories:
++//    - Fields referred by the path template. They are passed via the URL path.
++//    - Fields referred by the [HttpRule.body][google.api.HttpRule.body]. They are passed via the HTTP
++//      request body.
++//    - All other fields are passed via the URL query parameters, and the
++//      parameter name is the field path in the request message. A repeated
++//      field can be represented as multiple query parameters under the same
++//      name.
++//  2. If [HttpRule.body][google.api.HttpRule.body] is "*", there is no URL query parameter, all fields
++//     are passed via URL path and HTTP request body.
++//  3. If [HttpRule.body][google.api.HttpRule.body] is omitted, there is no HTTP request body, all
++//     fields are passed via URL path and URL query parameters.
++//
++// ### Path template syntax
++//
++//     Template = "/" Segments [ Verb ] ;
++//     Segments = Segment { "/" Segment } ;
++//     Segment  = "*" | "**" | LITERAL | Variable ;
++//     Variable = "{" FieldPath [ "=" Segments ] "}" ;
++//     FieldPath = IDENT { "." IDENT } ;
++//     Verb     = ":" LITERAL ;
++//
++// The syntax `*` matches a single URL path segment. The syntax `**` matches
++// zero or more URL path segments, which must be the last part of the URL path
++// except the `Verb`.
++//
++// The syntax `Variable` matches part of the URL path as specified by its
++// template. A variable template must not contain other variables. If a variable
++// matches a single path segment, its template may be omitted, e.g. `{var}`
++// is equivalent to `{var=*}`.
++//
++// The syntax `LITERAL` matches literal text in the URL path. If the `LITERAL`
++// contains any reserved character, such characters should be percent-encoded
++// before the matching.
++//
++// If a variable contains exactly one path segment, such as `"{var}"` or
++// `"{var=*}"`, when such a variable is expanded into a URL path on the client
++// side, all characters except `[-_.~0-9a-zA-Z]` are percent-encoded. The
++// server side does the reverse decoding. Such variables show up in the
++// [Discovery
++// Document](https://developers.google.com/discovery/v1/reference/apis) as
++// `{var}`.
++//
++// If a variable contains multiple path segments, such as `"{var=foo/*}"`
++// or `"{var=**}"`, when such a variable is expanded into a URL path on the
++// client side, all characters except `[-_.~/0-9a-zA-Z]` are percent-encoded.
++// The server side does the reverse decoding, except "%2F" and "%2f" are left
++// unchanged. Such variables show up in the
++// [Discovery
++// Document](https://developers.google.com/discovery/v1/reference/apis) as
++// `{+var}`.
++//
++// ## Using gRPC API Service Configuration
++//
++// gRPC API Service Configuration (service config) is a configuration language
++// for configuring a gRPC service to become a user-facing product. The
++// service config is simply the YAML representation of the `google.api.Service`
++// proto message.
++//
++// As an alternative to annotating your proto file, you can configure gRPC
++// transcoding in your service config YAML files. You do this by specifying a
++// `HttpRule` that maps the gRPC method to a REST endpoint, achieving the same
++// effect as the proto annotation. This can be particularly useful if you
++// have a proto that is reused in multiple services. Note that any transcoding
++// specified in the service config will override any matching transcoding
++// configuration in the proto.
++//
++// Example:
++//
++//     http:
++//       rules:
++//         # Selects a gRPC method and applies HttpRule to it.
++//         - selector: example.v1.Messaging.GetMessage
++//           get: /v1/messages/{message_id}/{sub.subfield}
++//
++// ## Special notes
++//
++// When gRPC Transcoding is used to map a gRPC to JSON REST endpoints, the
++// proto to JSON conversion must follow the [proto3
++// specification](https://developers.google.com/protocol-buffers/docs/proto3#json).
++//
++// While the single segment variable follows the semantics of
++// [RFC 6570](https://tools.ietf.org/html/rfc6570) Section 3.2.2 Simple String
++// Expansion, the multi segment variable **does not** follow RFC 6570 Section
++// 3.2.3 Reserved Expansion. The reason is that the Reserved Expansion
++// does not expand special characters like `?` and `#`, which would lead
++// to invalid URLs. As the result, gRPC Transcoding uses a custom encoding
++// for multi segment variables.
++//
++// The path variables **must not** refer to any repeated or mapped field,
++// because client libraries are not capable of handling such variable expansion.
++//
++// The path variables **must not** capture the leading "/" character. The reason
++// is that the most common use case "{var}" does not capture the leading "/"
++// character. For consistency, all path variables must share the same behavior.
++//
++// Repeated message fields must not be mapped to URL query parameters, because
++// no client library can support such complicated mapping.
++//
++// If an API needs to use a JSON array for request or response body, it can map
++// the request or response body to a repeated field. However, some gRPC
++// Transcoding implementations may not support this feature.
++message HttpRule {
++  // Selects a method to which this rule applies.
++  //
++  // Refer to [selector][google.api.DocumentationRule.selector] for syntax details.
++  string selector = 1;
++
++  // Determines the URL pattern is matched by this rules. This pattern can be
++  // used with any of the {get|put|post|delete|patch} methods. A custom method
++  // can be defined using the 'custom' field.
++  oneof pattern {
++    // Maps to HTTP GET. Used for listing and getting information about
++    // resources.
++    string get = 2;
++
++    // Maps to HTTP PUT. Used for replacing a resource.
++    string put = 3;
++
++    // Maps to HTTP POST. Used for creating a resource or performing an action.
++    string post = 4;
++
++    // Maps to HTTP DELETE. Used for deleting a resource.
++    string delete = 5;
++
++    // Maps to HTTP PATCH. Used for updating a resource.
++    string patch = 6;
++
++    // The custom pattern is used for specifying an HTTP method that is not
++    // included in the `pattern` field, such as HEAD, or "*" to leave the
++    // HTTP method unspecified for this rule. The wild-card rule is useful
++    // for services that provide content to Web (HTML) clients.
++    CustomHttpPattern custom = 8;
++  }
++
++  // The name of the request field whose value is mapped to the HTTP request
++  // body, or `*` for mapping all request fields not captured by the path
++  // pattern to the HTTP body, or omitted for not having any HTTP request body.
++  //
++  // NOTE: the referred field must be present at the top-level of the request
++  // message type.
++  string body = 7;
++
++  // Optional. The name of the response field whose value is mapped to the HTTP
++  // response body. When omitted, the entire response message will be used
++  // as the HTTP response body.
++  //
++  // NOTE: The referred field must be present at the top-level of the response
++  // message type.
++  string response_body = 12;
++
++  // Additional HTTP bindings for the selector. Nested bindings must
++  // not contain an `additional_bindings` field themselves (that is,
++  // the nesting may only be one level deep).
++  repeated HttpRule additional_bindings = 11;
++}
++
++// A custom pattern is used for defining custom HTTP verb.
++message CustomHttpPattern {
++  // The name of this custom HTTP verb.
++  string kind = 1;
++
++  // The path matched by this custom verb.
++  string path = 2;
++}
+\ No newline at end of file
+diff --git a/protobuf/gw/gw.proto b/protobuf/gw/gw.proto
+index ede49ca..8ab2840 100644
+--- a/protobuf/gw/gw.proto
++++ b/protobuf/gw/gw.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/gw";
+ option java_package = "io.chirpstack.api.gw";
+ option java_multiple_files = true;
+ option java_outer_classname = "GatewayProto";
++option csharp_namespace = "ChirpStack.Api.Gw";
+ 
+ import "common/common.proto";
+ import "google/protobuf/timestamp.proto";
+diff --git a/protobuf/nc/nc.proto b/protobuf/nc/nc.proto
+index b659c7b..625c2b7 100644
+--- a/protobuf/nc/nc.proto
++++ b/protobuf/nc/nc.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/nc";
+ option java_package = "io.chirpstack.api.nc";
+ option java_multiple_files = true;
+ option java_outer_classname = "NetworkControllerProto";
++option csharp_namespace = "ChirpStack.Api.Nc";
+ 
+ import "google/protobuf/empty.proto";
+ import "gw/gw.proto";
+diff --git a/protobuf/ns/ns.proto b/protobuf/ns/ns.proto
+index c24b70c..11dfada 100644
+--- a/protobuf/ns/ns.proto
++++ b/protobuf/ns/ns.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/ns";
+ option java_package = "io.chirpstack.api.ns";
+ option java_multiple_files = true;
+ option java_outer_classname = "NetworkServerProto";
++option csharp_namespace = "ChirpStack.Api.Ns";
+ 
+ import "google/protobuf/timestamp.proto";
+ import "google/protobuf/duration.proto";
+diff --git a/protobuf/ns/profiles.proto b/protobuf/ns/profiles.proto
+index e7e50c6..e8ca9a4 100644
+--- a/protobuf/ns/profiles.proto
++++ b/protobuf/ns/profiles.proto
+@@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/ns";
+ option java_package = "io.chirpstack.api.ns";
+ option java_multiple_files = true;
+ option java_outer_classname = "ProfilesProto";
++option csharp_namespace = "ChirpStack.Api.Ns";
+ 
+ enum RatePolicy {
+     // Drop
+-- 
+2.34.0.windows.1
+
