@@ -1,7 +1,7 @@
-From b2b389308d0b931d37240bd2820b54ec8f1bbaf9 Mon Sep 17 00:00:00 2001
+From 37edc78e10378070df65b58dd849547dcf88e853 Mon Sep 17 00:00:00 2001
 From: Luca Calacci <chipscal@gmail.com>
-Date: Wed, 8 Dec 2021 11:53:49 +0100
-Subject: [PATCH 1/3] chirpstack_csharp_patch
+Date: Wed, 8 Dec 2021 13:13:31 +0100
+Subject: [PATCH] chirpstack_csharp_patch
 
 ---
  .gitignore                                    |   4 +
@@ -50,7 +50,7 @@ index 5d9bd6e..8683d37 100644
 +/obj
 diff --git a/ChirpStack.Generate.csproj b/ChirpStack.Generate.csproj
 new file mode 100644
-index 0000000..c8a906a
+index 0000000..09f21e8
 --- /dev/null
 +++ b/ChirpStack.Generate.csproj
 @@ -0,0 +1,28 @@
@@ -72,7 +72,7 @@ index 0000000..c8a906a
 +
 +  <ItemGroup>
 +    <PackageReference Include="Google.Api.CommonProtos" Version="2.0.0" />
-+
++    <Protobuf Include="protobuf/google/**/*.proto" ProtoRoot="protobuf" OutputDir="../ChirpStack.Api/Protos/google/%(RelativePath)" GrpcServices="None" CompileOutputs="false" />
 +    <Protobuf Include="protobuf/as/**/*.proto" ProtoRoot="protobuf" OutputDir="../ChirpStack.Api/Protos/as/%(RelativePath)" GrpcServices="Client" CompileOutputs="false" />
 +    <Protobuf Update="protobuf/as/**/frameLog.proto;protobuf/as/**/profiles.proto;protobuf/as/**/integration.proto" GrpcServices="None" />
 +    <Protobuf Include="protobuf/common/**/*.proto" ProtoRoot="protobuf" OutputDir="../ChirpStack.Api/Protos/common/%(RelativePath)" GrpcServices="None" CompileOutputs="false" />
@@ -265,14 +265,14 @@ index 042e931..190b679 100644
  import "google/api/annotations.proto";
  import "google/protobuf/timestamp.proto";
 diff --git a/protobuf/as/integration/integration.proto b/protobuf/as/integration/integration.proto
-index eb101c0..bf6f346 100644
+index eb101c0..c73ce70 100644
 --- a/protobuf/as/integration/integration.proto
 +++ b/protobuf/as/integration/integration.proto
 @@ -6,6 +6,7 @@ option go_package = "github.com/brocaar/chirpstack-api/go/v3/as/integration";
  option java_package = "io.chirpstack.api.as.integration";
  option java_multiple_files = true;
  option java_outer_classname = "IntegrationProto";
-+option csharp_namespace = "ChirpStack.Api";
++option csharp_namespace = "ChirpStack.Api.As.Integration";
  
  import "common/common.proto";
  import "gw/gw.proto";
@@ -314,7 +314,7 @@ index ba04fb5..6328e50 100644
  import "common/common.proto";
 diff --git a/protobuf/google/api/annotations.proto b/protobuf/google/api/annotations.proto
 new file mode 100644
-index 0000000..1209c94
+index 0000000..8d52970
 --- /dev/null
 +++ b/protobuf/google/api/annotations.proto
 @@ -0,0 +1,33 @@
@@ -354,7 +354,7 @@ index 0000000..1209c94
 \ No newline at end of file
 diff --git a/protobuf/google/api/http.proto b/protobuf/google/api/http.proto
 new file mode 100644
-index 0000000..7854bd8
+index 0000000..2d002d4
 --- /dev/null
 +++ b/protobuf/google/api/http.proto
 @@ -0,0 +1,377 @@
