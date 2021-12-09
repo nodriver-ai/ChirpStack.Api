@@ -21,7 +21,7 @@ protobuf             - Protobuf and gRPC source files
 └── ns               - Network Server definitions
 ```
 
-## C\# bindings:ù
+## C\# bindings
 This repository contains scripts and configuration files to generate a .Net bindings for the 
 gRPC client API for the Chirpstack application server. For other languages support see:
     https://github.com/brocaar/chirpstack-api
